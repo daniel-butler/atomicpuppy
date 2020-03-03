@@ -9,6 +9,7 @@ install_requires = [
     "redis",
     "retrying",
     "requests",
+    "sqlitedict",
 ]
 
 tests_require = [

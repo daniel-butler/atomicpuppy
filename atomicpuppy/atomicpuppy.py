@@ -40,6 +40,7 @@ import pybreaker
 import redis
 import requests
 import yaml
+import sqlitedict
 
 from atomicpuppy.errors import (
     HttpClientError,
@@ -615,6 +616,29 @@ class RedisCounter(EventCounter):
 
     def _key(self, stream):
         return "urn:atomicpuppy:"+self._instance_name+":"+stream+":position"
+
+
+class SQLiteCounter(EventCounter):
+    def __init__(self):
+        self._store = sqlitedict.SqliteDict('atomicpuppy_counter.sqlite', autocommit=True, )
+        self._logger = logging.getLogger(__name__)
+
+    @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000, stop_max_delay=60000)
+    def __getitem__(self, stream) -> int:
+        self._logger.debug("Fetching last read event for stream " + stream)
+        value = self._store[stream]
+        if value:
+            value = int(value)
+            self._logger.info(
+                "Last read event for stream %s is %d",
+                stream,
+                value)
+            return value
+        return -1
+
+    @counter_circuit_breaker
+    def __setitem__(self, stream, value):
+        self._store[stream] = value
 
 
 class StreamConfigReader:

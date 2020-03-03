@@ -8,3 +8,4 @@ dist
 .ropeproject/
 venv/
 .coverage
+.idea
