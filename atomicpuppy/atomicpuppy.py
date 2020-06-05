@@ -413,9 +413,9 @@ class StreamFetcher:
         attempts = 0
         last_time = 0
         self._state = state.amber
-        while(True):
-            if(last_time < max_time):
-                attempts = attempts + 1
+        while True:
+            if (last_time < max_time):
+                attempts += 1
             elif self._state == state.amber:
                 self._state = state.red
                 self._log.error(
@@ -790,7 +790,7 @@ class EventPublisher:
         return self.batch_create(events)
 
     def batch_create(self, events):
-        if not all(events[0].stream == event.stream for event in events):
+        if any(events[0].stream != event.stream for event in events):
             raise InvalidDataException("All events in the POST have to be for the same stream")
 
         events_count = len(events)
@@ -823,7 +823,7 @@ class EventPublisher:
                     "metadata": event.metadata,
                 },
             )
-        auth = (self.username, self.password) if self.username and self.password else () 
+        auth = (self.username, self.password) if self.username and self.password else ()
         r = requests.post(
             uri,
             headers=headers,
